@@ -1,0 +1,126 @@
+spring:
+  application:
+    name: springboot
+  
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/heritage_db?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&serverTimezone=GMT%2b8&allowPublicKeyRetrieval=true
+    username: root
+    password: 19800326
+  
+  # 安全配置
+  security:
+    user:
+      name: admin
+      password: admin
+  main:
+    allow-bean-definition-overriding: true
+  # 邮件配置
+  mail:
+    host: smtp.qq.com
+    username: 1796145608@qq.com
+    password: kutsaiadfvqyjajc
+    default-encoding: utf-8
+    port: 587
+    properties:
+      mail:
+        debug: true
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+            protocols: TLSv1.2
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+            port: 465
+  
+  # Web配置
+  mvc:
+    static-path-pattern: /**  # 允许根路径访问静态资源
+  web:
+    resources:
+      static-locations: classpath:/static/, file:./files/  # 添加files目录
+  
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 500MB
+      max-request-size: 500MB
+  
+  # JSON配置
+  jackson:
+    default-property-inclusion: non_empty
+  
+  # Spring AI配置
+  ai:
+    openai:
+      api-key: sk-tlvbfnqaodkryjydehgkkyneklubzddefbhjrvkdfoyjdnil
+      base-url: https://api.siliconflow.cn
+      chat:
+        options:
+          model: deepseek-ai/DeepSeek-V3
+          temperature: 0.7
+        completions-path: /v1/chat/completions
+
+# 服务器配置
+server:
+  port: 8889
+  servlet:
+    context-path: /
+
+# MyBatis-Plus配置
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# SpringDoc配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+    enabled: true
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  enable-spring-security: false
+  paths-to-match: /**
+  packages-to-scan: org.example.springboot
+
+# Knife4j配置
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+  basic:
+    enable: true
+    username: admin
+    password: admin
+
+# JWT配置
+jwt:
+  secret: MySecretKeyForJWT2025!@#$%^&*()_+SecureKeyHere
+  expiration: 86400000  # 24小时（毫秒）
+  refresh-expiration: 604800000  # 7天（毫秒）
+  header: Authorization  # token头部名称
+  token-prefix: "Bearer "  # token前缀
+
+
+# 文件管理配置
+file:
+  upload:
+    path: ./files
+    maxSize: 524288000  # 500MB (500 * 1024 * 1024)
+
+heritage:
+  alipay:
+    alipay_url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+    app_id: 9021000158650975
+    app_private_key: MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCdtcm9ws9TRtA3SWG1s6az9/6QTbHpiPV896fKS3Hw3xY4lXPdjZJK3rbVkeABR9TFnea+fsICS2s3PRhKO//m+GotnSYMaHGAqXtCZk6TXI0DUQetsQxnk+g+T6rTWd2M/iJxoyEtvcBo1gaXxa8P6CLans5jyyUuUV7b5tcJoJaISb/Sh1YyLKy4KtDEDUct4OiWNJqxVASJxbWuedjtMjvxEeo3elqVECvv+YZv9uKM7k7UxVbzUd1GqthFSXVrc2rE29yFlI3gjQLbYYA8934ztczoDQXhE7z5Fe94o25mI2E4z82GgFKUwWXx6C1zx5zB1zNw7PXLS5zdhdlLAgMBAAECggEAbwceAgP15ZDC4Uk+CqdxQt3iT0EDcX/EI7hOXfKDQqorgKZmraEPTrpASVarNvuU5ZLmcVHXz7m8v2S5hvl6jOZyCa7KrI2S6ptmdTaFNuU/OQiAuV0deIX+SG/ZuXVYrfvzz8CiiQs/PA8BETRQrIgmkXafok3P3S3X9EQtO069uHNTkUUFdMgAUAqDv6dh3GbqWZpcubEPza7a1914UAz6UOnLMoTIvOcS618DaJsZmMewWwwCSxYbUKNqoLUJ6v9ckm4GXhO13JnLOD5dxQzwi5L8gBQOXeV1sr2UVfk14lcYJ7l1PFStynqQD9F87VPCUg1xfWaBnDzZwT9YkQKBgQDvD+TugMWZGQq67KZLp+X6NJh8w4CcJf0J46iEZv7veZLLBSbM9z7ojQ3v+BquAaT3a1lScsdwPBSa4S9dzQWhQZRZhaz+YfARfAAx0tkgI99Lc0cnvTeQJnQhqXvFmg1ah5cQj7Hy04AYEb0QcELGAy28xwzqBZTlkG3t6+o1JwKBgQCo4lUan7BSvocFttEf7N+X+C4SiFZSTiPkAa8bHT4e65vr2GAwQjJONiEm4ZZ6BMADGgdecbQNq/k1npWMtno2X4ICVVoTWXaWpZp6ZdFORKWZrMJzTUxoXkj8ENoTvodzzn8Hb+big0XGECMoq/7Ma1krX+t1bQfhhJfCpAK5PQKBgDoXHaUK63kRSbc0TBB0QwDyiN9ATl8jKAKgLFHICUi9vPrSTKRfrAysQee+3RTNV327ux+6vlW6c7NS5sSfTi/qFJdQUUIbIE/PVujEeHhD3z2hTHgOlZLUlUGcwnO4xGfsLLwcfrwnwqeWn99/t+oP2axWnf+7zXufBedbfTTfAoGAVq1zSGrVMGKhIgmmY2BLkc/KtbBLvYplWUyT9rKXg38hU3aGR75x2zpk4XO+q3lsoyrkxVBOPQYara5qywGM0ANM0q3DwVKVTtRH6LIBLs6Ev86vLkZqBNb/Vn+/rYqIMqO1BrgkI/WEBheaM/GyoHAoH97nFimTded7jGZpD3ECgYABHBQg9UFQyEoP9wKQdD1a/rqT6W5SkI8nLdjIJjR6+4xnL/tNo29ObUNv1o8rGx3mGGE/XdUAat6Ml1ZGVOxbLbrJUdLhMo9vJdtBl3n0INEphxU++wYwj6OppLsIdyvQCavf+vlir02iS1Ok0lQbVtR3fEwhCGgceuYJ/676kw==
+    alipay_public_key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyoEhIGzuwKg78dXShvCpXd/v8eYxQssKxUvGUmh+PUYcDDa1iXpMVPMTdvzKaf4ha9EQNNDOdBIDZM41UZgV+atoWONra5UwFcrvcvdpQ6fCa06zWopINNpM5DYKH+nrc2Qa02b03bnsQpMmvYi+ZDXqf/J4yMtW8R+QuUaIv2Ws/A4JJQQ3sy/StraPmxF5rG2fra7DQUTaKeGEJJzL5L4cyyeYiSjAG3ZndeU7H00OTYlyTJFljr9NHSlqjD0px+A+KF0/mhXi7BWNbTYoX//L8ducj3jV7S5vIQePvu22joccjBhhBWnycuEv7YbvfQ6bRAXKf8UnZU8Z2RZ87wIDAQAB
+    return_payment_url: http://localhost:8889/api/shop/order/return
+    notifyPaymentUrl: http://7e22aae6.r15.cpolar.top/api/shop/order/notify
