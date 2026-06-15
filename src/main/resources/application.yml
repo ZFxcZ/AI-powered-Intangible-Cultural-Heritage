@@ -56,8 +56,8 @@ spring:
   # Spring AI配置
   ai:
     openai:
-      api-key: sk-tlvbfnqaodkryjydehgkkyneklubzddefbhjrvkdfoyjdnil
-      base-url: https://api.siliconflow.cn
+      api-key: sk-ivduywsfzvevhpjamkxtvzfecddhhcjbjkejsmietetovzof
+      base-url: https://api.siliconflow.cn/
       chat:
         options:
           model: deepseek-ai/DeepSeek-V3

@@ -50,16 +50,12 @@ public class UserService {
                     .eq(User::getEmail, loginDTO.getUsername());
             User user = userMapper.selectOne(queryWrapper);
 
-
             if (user == null) {
                 throw new BusinessException("用户不存在");
             }
 
             // 验证密码
-//            if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
-//                throw new BusinessException("用户名或密码错误");
-//            }
-            if(!loginDTO.getPassword().equals(user.getPassword())){
+            if (!passwordEncoder.matches(loginDTO.getPassword(), user.getPassword())) {
                 throw new BusinessException("用户名或密码错误");
             }
 

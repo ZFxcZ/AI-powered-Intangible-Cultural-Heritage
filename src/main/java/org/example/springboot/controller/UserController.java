@@ -37,7 +37,7 @@ public class UserController {
     @Operation(summary = "用户登录")
     @PostMapping("/login")
     public Result<UserLoginResponseDTO> login(@Valid @RequestBody UserLoginCommandDTO loginDTO) {
-        log.info("用户登录请求: {}", loginDTO.getUsername());
+        log.info("用户登录请求: {},用户登录密码：{}", loginDTO.getUsername(), loginDTO.getPassword());
         UserLoginResponseDTO response = userService.login(loginDTO);
         return Result.success("登录成功", response);
     }
