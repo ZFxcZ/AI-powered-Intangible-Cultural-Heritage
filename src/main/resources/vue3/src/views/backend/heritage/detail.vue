@@ -68,8 +68,7 @@
 
     <!-- 作品内容 -->
     <div
-      v-else-if="current
-I     tem"
+      v-else-if="currentItem"
       class="content-conta
     iner"
     >
@@ -159,18 +158,8 @@ I     tem"
             <label>详细描述：</label>
             <div class="description-content">
               <div
-                v-
-                i
-                f="currentItem.description"
-               
-              
-                v-
-                h
-                tml="f
-o               rmatDescription(cu
-              r
-                rentIt
-              em.description)"
+                v-if="currentItem.description"
+                v-html="formatDescription(currentItem.description)"
               />
               <div
                 v-else
@@ -196,13 +185,12 @@ o               rmatDescription(cu
             v-if="canEdit"
             type="primary"
             size="small"
-            @click="showMediaManag   true"
-          >
+            @click="showMediaManager(true)">
             <i class="fas fa-plus" />
             管理媒体
           </a-button>
-          </te
-          m plate>
+          </template>
+      </a-card>
          
         
 
@@ -295,8 +283,7 @@ o               rmatDescription(cu
                   <span class="media-size">{{
                     formatFileSize(media.fileSize)
             
-                  }}<
-                    /span>
+                  }}
                   </span>
                 </div> 
               </div>
@@ -314,22 +301,18 @@ o               rmatDescription(cu
        
             <p>暂无媒体文件</p>
           </div>
-        </template>
-      </a-card>
+<!--        </template>-->
+<!--      </a-card>-->
 
       <!-- 传承人信息卡片 -->
       <a-card
         v-if="currentItem.inheritorList && currentItem.inheritorList.length > 0"
         class="inheritor-card"
-        :title="`关
-               联传承人 (${currentItem.inherito
-               rList.length})`"
+        :title="`关联传承人 (${currentItem.inheritorList.length})`"
       >
         <div class="inheritor-list">
           <div
-            v-for="inheritor in currentIte
-                m.inheritorList"
-              
+            v-for="inheritor in currentItem.inheritorList"
             :key="inheritor.id"
                 
               
@@ -342,8 +325,7 @@ o               rmatDescription(cu
                 :alt="inheritor.name"
               >
         
-              <
-              i v-else class="fa
+              <i v-else class="fa
               s fa-user"></i>
             </div>
             <div class="inheritor-info">
@@ -432,7 +414,7 @@ o               rmatDescription(cu
 
         <!-- 音频预览 -->
         <audio
-          vif="previewMedia?.type === 'AUDIO'"
+          v-if="previewMedia?.type === 'AUDIO'"
           :src="previewMedia.filePath"
           controls
           class="preview-audio"
@@ -448,7 +430,6 @@ o               rmatDescription(cu
         />
       </div>
     </a-mdal>
-  </a-modal>
   </a-modal>
 </template>
 

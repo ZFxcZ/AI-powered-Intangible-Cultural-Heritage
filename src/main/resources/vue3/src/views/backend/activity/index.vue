@@ -178,11 +178,7 @@
       :title="modalTitle"
       width="800px"
       @ok="handleModalOk"
-      @cancel="handl
-e         ModalCancel"
-         
-        
-    >
+      @cancel="handleModalCancel">
            
            
          
@@ -205,8 +201,7 @@ l           ="{ span: 20 }"
           <a-input
               
             
-            v-model:value="formData.titl
-              e"
+            v-model:value="formData.title"
             
             placeholder="请输入活动标题"
           />
@@ -224,8 +219,7 @@ l           ="{ span: 20 }"
           </a-select>
         </a-form-item>
 
-        <a-form-it
-e           m label="活动时间" required>
+        <a-form-item label="活动时间" required>
            
          
           <a-range-picker
@@ -268,14 +262,11 @@ a           lse }"
           >
               
             
-            <div v-if="coverFileList.len
-              gth
+            <div v-if="coverFileList.length
              < 1">
-              <i class="fas fa-upload"><
-              /i>
+              <i class="fas fa-upload"></i>
             
-              <div style="margin-top: 8p
-              x">
+              <div style="margin-top: 8px">
             上传封面</div>
             </div>
           </a-upload>
@@ -353,7 +344,7 @@ a           lse }"
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import { generateUUID } from "@/composables/useBusinessUUID";
