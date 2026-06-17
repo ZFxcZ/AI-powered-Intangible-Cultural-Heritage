@@ -2,16 +2,12 @@ package org.example.springboot.ai;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.springboot.entity.*;
 import org.example.springboot.mapper.*;
-import org.example.springboot.util.JwtTokenUtils;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -467,8 +463,7 @@ public class HeritageTools {
             } else {
                 LambdaQueryWrapper<ShopOrder> wrapper = new LambdaQueryWrapper<>();
                 wrapper.eq(ShopOrder::getUserId, currentUserId)
-                        .orderByDesc(ShopOrder::getCreateTime)
-                        .last("LIMIT 5");
+                        .orderByDesc(ShopOrder::getCreateTime);
 
                 List<ShopOrder> orders = shopOrderMapper.selectList(wrapper);
 
@@ -476,7 +471,7 @@ public class HeritageTools {
                     return "📦 **暂无订单记录**\n\n您当前还没有任何订单，可以去商城逛逛哦～";
                 }
 
-                StringBuilder result = new StringBuilder(String.format("**最近 %d 个订单**\n\n", orders.size()));
+                StringBuilder result = new StringBuilder(String.format("**全部订单（共 %d 条）**\n\n", orders.size()));
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
                 for (ShopOrder order : orders) {
