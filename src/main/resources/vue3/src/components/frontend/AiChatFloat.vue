@@ -118,7 +118,7 @@
           <div
             ref="messagesContainer"
             class="messages-container"
-          >
+              >
             <div class="message ai-message welcome-message">
               <div class="message-avatar">
                 <i class="fas fa-robot" />
@@ -213,7 +213,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { message } from "ant-design-vue";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { useUserStore } from "@/store/user";
@@ -227,6 +227,7 @@ import {
   updateSessionTitle as updateSessionTitleApi,
   deleteSession as deleteSessionApi,
 } from "@/api/AiChatApi";
+import { useRouter } from "vue-router";
 
 marked.setOptions({
   breaks: true,
@@ -238,6 +239,7 @@ marked.setOptions({
 
 const userStore = useUserStore();
 const appStore = useAppStore();
+const router = useRouter();
 const visible = ref(false);
 const inputMessage = ref("");
 const messages = ref([]);
@@ -581,7 +583,96 @@ const formatMessage = (content) => {
       .replace(/\n/g, "<br/>");
   }
 };
+const routeLinkHandler = async (event) => {
+  const link = event.target.closest('a');
+  if (!link) return;
+  const href = link.getAttribute('href') || '';
+  if (href.startsWith("action://")) {
+    event.preventDefault();
+    event.stopPropagation();
 
+    const actionUrl = href.replace('action://', '');
+    const [action, queryString] = actionUrl.split('?');
+    const params = queryString ? Object.fromEntries(new URLSearchParams(queryString)) : {};
+
+    if (action === 'signup' && params.id) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const msgIdx = messages.value.length;
+      messages.value.push({
+        role: "assistant",
+        content: "⏳ **正在提交报名，请稍候...**",
+        createTime: new Date().toISOString()
+      });
+
+      try {
+        const token = userStore.token;
+        if (!token) {
+          messages.value[msgIdx].content = "⚠️ **请先登录**\n\n报名活动需要先登录账号。";
+          return;
+        }
+
+        const response = await fetch('/api/activity/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({
+            activityId: params.id,
+            userId: userStore.userId
+          })
+        });
+
+        const result = await response.json();
+        if (result.code === "200") {
+          const activityTitle = result.data?.activityTitle || "该活动";
+          messages.value[msgIdx].content = "✅ **报名成功！**\n\n您已成功报名 **" + activityTitle + "**。\n\n🔗 [查看活动详情](route://activity?id=" + params.id + ")\n💡 请留意活动通知，按时参加活动哦～";
+        } else {
+          messages.value[msgIdx].content = "❌ **" + (result.message || "报名失败，请稍后重试。") + "**";
+        }
+      } catch (error) {
+        messages.value[msgIdx].content = "❌ **报名失败**\n\n" + (error.message || "网络错误，请稍后重试。");
+      }
+
+      return;
+    }
+    return;
+  }
+  if (!href.startsWith("route://")) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const url = href.replace('route://', '');
+  const [path, queryString] = url.split('?');
+  const params = queryString ? Object.fromEntries(new URLSearchParams(queryString)) : {};
+
+  const routeMap = {
+    heritage:  (id) => id ? '/heritage/' + id : '/heritage',
+    inheritor: (id) => id ? '/inheritor/' + id : '/inheritor',
+    activity:  (id) => id ? '/activity/' + id : '/activity',
+    course:    (id) => id ? '/course/' + id : '/course',
+    shop:      (id) => id ? '/shop/' + id : '/shop',
+    orders:    ()  => '/orders',
+  };
+
+  const navigate = routeMap[path];
+  if (!navigate) return;
+
+  visible.value = false;
+  const target = params.id ? navigate(params.id) : navigate();
+  window.location.href = target;
+};
+
+onMounted(() => {
+  document.addEventListener("click", routeLinkHandler);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("click", routeLinkHandler);
+});
 const formatTime = (time) => {
   if (!time) return "";
   const date = new Date(time);
