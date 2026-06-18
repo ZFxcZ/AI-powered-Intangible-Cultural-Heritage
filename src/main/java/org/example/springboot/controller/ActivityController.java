@@ -17,6 +17,8 @@ import org.example.springboot.dto.command.ActivitySignupCreateCommandDTO;
 import org.example.springboot.dto.response.ActivityDetailResponseDTO;
 import org.example.springboot.dto.response.ActivityResponseDTO;
 import org.example.springboot.dto.response.ActivitySignupResponseDTO;
+import org.example.springboot.dto.response.UserActivitySignupResponseDTO;
+import org.example.springboot.util.JwtTokenUtils;
 import org.example.springboot.service.ActivityService;
 import org.example.springboot.service.ActivitySignupService;
 
@@ -77,7 +79,8 @@ public class ActivityController {
         
         log.info("分页查询活动列表: page={}, size={}, title={}", current, size, title);
 
-        Page<ActivityResponseDTO> response = activityService.getActivityPage(current, size, title, type, status);
+        Long currentUserId = JwtTokenUtils.getCurrentUserId();
+        Page<ActivityResponseDTO> response = activityService.getActivityPage(current, size, title, type, status, currentUserId);
         return Result.success(response);
     }
 
@@ -192,5 +195,33 @@ public class ActivityController {
         ActivitySignupResponseDTO response = activitySignupService.getSignupById(signupId);
         return Result.success(response);
     }
-}
+    /**
+     * 取消报名
+     */
+    @Operation(summary = "取消报名", description = "用户取消自己的活动报名")
+    @DeleteMapping("/signup/{signupId}/cancel")
+    public Result<Void> cancelSignup(
+            @Parameter(description = "报名ID") @PathVariable Long signupId) {
+        Long userId = JwtTokenUtils.getCurrentUserId();
+        log.info("取消报名请求: signupId={}, userId={}", signupId, userId);
+        activitySignupService.cancelSignup(signupId, userId);
+        return Result.success();
+    }
 
+    /**
+     * 获取当前用户对某活动的报名信息
+     */
+    @Operation(summary = "获取我的报名信息", description = "查询当前用户对指定活动的报名信息")
+    @GetMapping("/{activityId}/my-signup")
+    public Result<UserActivitySignupResponseDTO> getMySignup(
+            @Parameter(description = "活动ID") @PathVariable String activityId) {
+        Long userId = JwtTokenUtils.getCurrentUserId();
+        log.info("获取我的报名信息请求: activityId={}, userId={}", activityId, userId);
+        if (userId == null) {
+            return Result.success(null);
+        }
+        UserActivitySignupResponseDTO response = activitySignupService.getUserSignupForActivity(activityId, userId);
+        return Result.success(response);
+    }
+
+}

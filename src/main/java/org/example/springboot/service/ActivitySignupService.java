@@ -18,6 +18,7 @@ import org.example.springboot.mapper.ActivitySignupMapper;
 import org.example.springboot.mapper.UserMapper;
 import org.example.springboot.dto.command.ActivitySignupCreateCommandDTO;
 import org.example.springboot.dto.response.ActivitySignupResponseDTO;
+import org.example.springboot.dto.response.UserActivitySignupResponseDTO;
 import org.example.springboot.enums.ActivitySignupStatus;
 import org.example.springboot.enums.ActivityStatus;
 import org.example.springboot.exception.BusinessException;
@@ -313,5 +314,74 @@ public class ActivitySignupService {
             throw new ServiceException("报名签到失败，请稍后重试");
         }
     }
-}
+    /**
+     * 取消报名
+     * @param signupId 报名ID
+     * @param userId 用户ID（用于验证报名归属）
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelSignup(Long signupId, Long userId) {
+        try {
+            ActivitySignup signup = activitySignupMapper.selectById(signupId);
+            if (signup == null) {
+                throw new BusinessException("报名记录不存在");
+            }
 
+            if (!signup.getUserId().equals(userId)) {
+                throw new BusinessException("只能取消自己的报名");
+            }
+
+            if (signup.isCheckedIn()) {
+                throw new BusinessException("已签到的报名不能取消");
+            }
+
+            activitySignupMapper.deleteById(signupId);
+            log.info("取消报名成功: signupId={}, userId={}", signupId, userId);
+
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("取消报名失败: signupId={}", signupId, e);
+            throw new ServiceException("取消报名失败，请稍后重试");
+        }
+    }
+
+    /**
+     * 获取用户对某活动的报名信息
+     * @param activityId 活动ID
+     * @param userId 用户ID
+     * @return 报名信息（未报名返回null）
+     */
+    public UserActivitySignupResponseDTO getUserSignupForActivity(String activityId, Long userId) {
+        try {
+            LambdaQueryWrapper<ActivitySignup> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(ActivitySignup::getActivityId, activityId)
+                   .eq(ActivitySignup::getUserId, userId);
+            ActivitySignup signup = activitySignupMapper.selectOne(wrapper);
+
+            if (signup == null) {
+                return null;
+            }
+
+            UserActivitySignupResponseDTO response = new UserActivitySignupResponseDTO();
+            response.setId(signup.getId());
+            response.setActivityId(signup.getActivityId());
+            response.setUserId(signup.getUserId());
+            response.setStatus(signup.getStatus());
+            response.setStatusName(signup.getStatusDisplayName());
+            response.setCreateTime(signup.getCreateTime());
+
+            Activity activity = activityMapper.selectById(signup.getActivityId());
+            if (activity != null) {
+                response.setActivityTitle(activity.getTitle());
+            }
+
+            return response;
+
+        } catch (Exception e) {
+            log.error("获取用户报名信息失败: activityId={}, userId={}", activityId, userId, e);
+            throw new ServiceException("获取报名信息失败，请稍后重试");
+        }
+    }
+
+}

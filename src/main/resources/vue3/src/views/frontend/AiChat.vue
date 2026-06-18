@@ -13,7 +13,7 @@
         </div>
       </div>
       <!-- 消息列表 -->
-      <div class="messages-container" ref="messagesContainer">
+      <div class="messages-container" ref="messagesContainer" @click="handleMessageClick">
         <!-- 欢迎消息 -->
         <div class="message ai-message welcome-message">
           <div class="message-avatar">
@@ -99,8 +99,11 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
+import { useRouter } from "vue-router";
 import { message } from "ant-design-vue";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { signupActivity } from "@/api/ActivityApi";
+import { useUserStore } from "@/store/user";
 import { useUserStore } from "@/store/user";
 import { useAppStore } from "@/store/app";
 import { marked } from "marked";
@@ -120,12 +123,14 @@ marked.setOptions({
 });
 
 const userStore = useUserStore();
+const router = useRouter();
 const appStore = useAppStore();
 const inputMessage = ref("");
 const messages = ref([]);
 const loading = ref(false);
 const messagesContainer = ref(null);
 const currentSessionId = ref(null);
+const userStore = useUserStore();
 
 // 创建会话
 const createSession = async () => {
@@ -285,6 +290,141 @@ const formatTime = (time) => {
   const hours = date.getHours().toString().padStart(2, "0");
   const minutes = date.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
+};
+
+
+// 处理消息中的 action:// 链接点击
+const handleMessageClick = (event) => {
+  const link = event.target.closest("a");
+  if (!link) return;
+  const href = link.getAttribute("href");
+  if (!href) return;
+
+  // 处理 route:// 协议 - 跳转页面
+  if (href.startsWith("route://")) {
+    event.preventDefault();
+    const url = new URL(href);
+    const pageType = url.hostname;
+    const id = url.searchParams.get("id");
+
+    const routeMap = {
+      "activity": "/activity/",
+      "heritage": "/heritage/",
+      "inheritor": "/inheritor/",
+      "course": "/course/",
+      "shop": "/shop/",
+    };
+
+    const basePath = routeMap[pageType];
+    if (basePath) {
+      if (id) {
+        router.push(basePath + id);
+      } else {
+        router.push(basePath);
+      }
+    } else if (pageType === "orders") {
+      router.push("/orders");
+    }
+    return;
+  }
+
+  // 处理 action:// 协议 - 执行操作
+  if (href.startsWith("action://")) {
+    event.preventDefault();
+    const url = new URL(href);
+    const action = url.hostname;
+    const activityId = url.searchParams.get("id");
+
+    if (action === "signup" && activityId) {
+      if (!userStore.isLoggedIn) {
+        message.warning("请先登录后再报名");
+        return;
+      }
+
+      messages.value.push({
+        role: "assistant",
+        content: "⏳ 正在为您报名活动，请稍候...",
+        createTime: new Date().toISOString(),
+      });
+      scrollToBottom();
+
+      signupActivity(
+        {
+          activityId: activityId,
+          userId: userStore.userId,
+        },
+        {
+          onSuccess: () => {
+            const lastMsg = messages.value[messages.value.length - 1];
+            if (lastMsg && lastMsg.role === "assistant") {
+              lastMsg.content = "✅ **报名成功！**\n\n您已成功报名该活动，请等待管理员审核。\n\n💡 [查看活动详情](route://activity?id=" + activityId + ")";
+            }
+            scrollToBottom();
+          },
+          onError: (error) => {
+            const lastMsg = messages.value[messages.value.length - 1];
+            if (lastMsg && lastMsg.role === "assistant") {
+              lastMsg.content = "❌ **报名失败**\n\n" + (error?.message || "未知错误，请稍后重试或前往活动详情页报名。") + "\n\n💡 [查看活动详情](route://activity?id=" + activityId + ")";
+            }
+            scrollToBottom();
+          },
+          showDefaultMsg: false,
+        },
+      );
+    }
+  }
+};
+  const link = event.target.closest("a");
+  if (!link) return;
+  const href = link.getAttribute("href");
+  if (!href || !href.startsWith("action://")) return;
+  event.preventDefault();
+
+  // 解析 action://signup?id=XXX
+  const url = new URL(href);
+  const action = url.hostname;
+  const activityId = url.searchParams.get("id");
+
+  if (action === "signup" && activityId) {
+    if (!userStore.isLoggedIn) {
+      message.warning("请先登录后再报名");
+      return;
+    }
+
+    // 添加系统消息到聊天
+    messages.value.push({
+      role: "assistant",
+      content: "⏳ 正在为您报名活动，请稍候...",
+      createTime: new Date().toISOString(),
+    });
+    scrollToBottom();
+
+    signupActivity(
+      {
+        activityId: activityId,
+        userId: userStore.userId,
+      },
+      {
+        onSuccess: () => {
+          // 更新最后一条消息为成功
+          const lastMsg = messages.value[messages.value.length - 1];
+          if (lastMsg && lastMsg.role === "assistant") {
+            lastMsg.content = "✅ **报名成功！**\n\n您已成功报名该活动，请等待管理员审核。\n\n💡 [查看活动详情](route://activity?id=" + activityId + ")";
+          }
+          scrollToBottom();
+        },
+        onError: (error) => {
+          // 更新最后一条消息为失败
+          const lastMsg = messages.value[messages.value.length - 1];
+          if (lastMsg && lastMsg.role === "assistant") {
+            lastMsg.content = "❌ **报名失败**\n\n" + (error?.message || "未知错误，请稍后重试或前往活动详情页报名。") + "\n\n💡 [查看活动详情](route://activity?id=" + activityId + ")";
+          }
+          scrollToBottom();
+        },
+        showDefaultMsg: false,
+      },
+    );
+  }
 };
 
 // 滚动到底部

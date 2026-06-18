@@ -167,7 +167,7 @@ public class ActivityService {
      * @param status 状态
      * @return 分页结果
      */
-    public Page<ActivityResponseDTO> getActivityPage(Long current, Long size, String title, String type, Integer status) {
+    public Page<ActivityResponseDTO> getActivityPage(Long current, Long size, String title, String type, Integer status, Long userId) {
         try {
             Page<Activity> page = new Page<>(current, size);
             LambdaQueryWrapper<Activity> wrapper = new LambdaQueryWrapper<>();
@@ -191,6 +191,14 @@ public class ActivityService {
             List<ActivityResponseDTO> responseDTOList = activityPage.getRecords().stream()
                     .map(activity -> {
                         ActivityResponseDTO dto = ActivityConvert.entityToResponse(activity);
+                        // 查询当前用户是否已报名
+                        if (userId != null) {
+                            LambdaQueryWrapper<ActivitySignup> signupWrapper = new LambdaQueryWrapper<>();
+                            signupWrapper.eq(ActivitySignup::getActivityId, activity.getId())
+                                         .eq(ActivitySignup::getUserId, userId);
+                            Long count = activitySignupMapper.selectCount(signupWrapper);
+                            dto.setHasSignedUp(count > 0);
+                        }
                         // 查询封面文件路径（只查询未删除的文件）
                         if (activity.getCoverFileId() != null) {
                             SysFileInfo coverFile = sysFileInfoMapper.selectById(activity.getCoverFileId());

@@ -130,5 +130,22 @@ export function checkInSignup(params, callbacks) {
 export function getSignupDetail(params, callbacks) {
   return request.get(`/activity/signup/${params.signupId}`, null, callbacks)
 }
+/**
+ * 取消报名
+ * @param {object} params - 请求参数 { signupId: Number }
+ * @param {object} callbacks - 回调函数 { onSuccess, onError, successMsg }
+ * @returns {Promise}
+ */
+export function cancelSignup(params, callbacks) {
+  return request.delete(`/activity/signup/${params.signupId}/cancel`, callbacks)
+}
 
-
+/**
+ * 获取当前用户对某活动的报名信息
+ * @param {object} params - 请求参数 { activityId: String }
+ * @param {object} callbacks - 回调函数 { onSuccess, onError }
+ * @returns {Promise}
+ */
+export function getMySignup(params, callbacks) {
+  return request.get(`/activity/${params.activityId}/my-signup`, null, callbacks)
+}

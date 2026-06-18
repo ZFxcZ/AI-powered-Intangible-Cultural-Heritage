@@ -42,7 +42,7 @@
                     <div class="info-content">
                       <span class="label">活动地点</span>
                       <span class="value"
-                        >{ activity.location || "待定" }}</span
+                        >{{ activity.location || "待定" }}</span
                       >
                     </div>
                   </div>
@@ -71,14 +71,14 @@
                     </a-button>
                   </template>
 
-                  <template v-else-if="activity.stat == 2">
+                  <template v-else-if="activity.status == 2">
                     <a-button size="large" block disabled>
                       <i class="fas fa-clock" />
                       活动进行中
                     </a-button>
                   </template>
 
-                  <template v-else-if="activity.status = 3">
+                  <template v-else-if="activity.status === 3">
                     <a-button size="large" block disabled>
                       <i class="fas fa-times-circle" />
                       活动已结束
@@ -127,6 +127,31 @@
       </div>
     </a-spin>
 
+
+    <!-- 取消报名确认弹窗 -->
+    <a-modal
+      v-model:open="cancelSignupModalVisible"
+      title="取消报名"
+      @ok="handleCancelSignup"
+      @cancel="cancelSignupModalVisible = false"
+      :confirmLoading="cancelling"
+      ok-text="确认取消"
+      cancel-text="再想想"
+      :ok-button-props="{ danger: true }"
+    >
+      <div class="cancel-signup-form">
+        <a-alert
+          message="确认取消报名？"
+          description="取消报名后将无法恢复，如需再次报名需重新提交申请。"
+          type="warning"
+          show-icon
+        />
+        <p style="margin-top: 16px; color: #666;">
+          <strong>活动：</strong>{{ activity?.title }}<br/>
+          <strong>报名状态：</strong>{{ mySignup?.statusName }}
+        </p>
+      </div>
+    </a-modal>
     <!-- 报名弹窗 -->
     <a-modal
       v-model:open="isSignupModalVisible"
@@ -159,7 +184,7 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
-import { getActivityDetail, signupActivity } from "@/api/ActivityApi";
+import { getActivityDetail, signupActivity, getMySignup, cancelSignup } from "@/api/ActivityApi";
 import { useUserStore } from "@/store/user";
 
 const route = useRoute();
@@ -169,6 +194,10 @@ const userStore = useUserStore();
 const activity = ref(null);
 const loading = ref(false);
 const isSignupModalVisible = ref(false);
+// 用户报名状态
+const mySignup = ref(null);
+const cancelSignupModalVisible = ref(false);
+const cancelling = ref(false);
 
 // 加载活动详情
 const loadDetail = () => {
@@ -179,12 +208,30 @@ const loadDetail = () => {
       onSuccess: (data) => {
         activity.value = data;
         loading.value = false;
+        loadMySignup();
       },
       onError: () => {
         loading.value = false;
         message.error("加载失败");
         router.back();
       },
+    },
+  );
+};
+
+// 获取当前用户的报名信息
+const loadMySignup = () => {
+  if (!userStore.isLoggedIn || !activity.value?.id) {
+    mySignup.value = null;
+    return;
+  }
+  getMySignup(
+    { activityId: activity.value.id },
+    {
+      onSuccess: (data) => {
+        mySignup.value = data;
+      },
+      showDefaultMsg: false,
     },
   );
 };
@@ -227,6 +274,39 @@ const handleSignupOk = () => {
       successMsg: false,
     },
   );
+};
+
+// 确认取消报名
+const handleCancelSignup = () => {
+  if (!mySignup.value?.id || !userStore.userId) return;
+  cancelling.value = true;
+  cancelSignup(
+    { signupId: mySignup.value.id },
+    {
+      onSuccess: () => {
+        message.success("取消报名成功");
+        cancelSignupModalVisible.value = false;
+        mySignup.value = null;
+        loadDetail();
+      },
+      onError: () => {
+        cancelling.value = false;
+        cancelSignupModalVisible.value = false;
+      },
+      successMsg: false,
+    },
+  );
+};
+
+// 获取报名状态颜色
+const getSignupStatusColor = (status) => {
+  const colors = {
+    0: "orange",
+    1: "green",
+    2: "red",
+    3: "blue",
+  };
+  return colors[status] || "default";
 };
 
 // 工具函数
@@ -472,6 +552,17 @@ onMounted(() => {
         margin-bottom: 0;
       }
     }
+  }
+}
+
+.signup-status {
+  margin-bottom: 12px;
+  text-align: center;
+
+  :deep(.ant-tag) {
+    font-size: 14px;
+    padding: 4px 12px;
+    border-radius: 4px;
   }
 }
 

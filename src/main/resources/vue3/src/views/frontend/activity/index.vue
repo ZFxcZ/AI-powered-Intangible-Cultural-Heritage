@@ -96,7 +96,14 @@
                 </div>
                 <div class="activity-action">
                   <a-button
-                    v-if="activity.status === 1"
+                    v-if="activity.status === 1 && activity.hasSignedUp"
+                    size="small"
+                    disabled
+                  >
+                    已报名
+                  </a-button>
+                  <a-button
+                    v-else-if="activity.status === 1"
                     type="primary"
                     size="small"
                     @click.stop="handleSignup(activity)"
@@ -189,7 +196,6 @@ const pagination = reactive({
 // 报名相关
 const isSignupModalVisible = ref(false);
 const selectedActivity = ref(null);
-
 // 加载数据
 const loadData = () => {
   loading.value = true;

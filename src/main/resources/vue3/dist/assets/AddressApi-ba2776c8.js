@@ -1,1 +1,0 @@
-import{r}from"./index-f73a73a9.js";function u(e,s={}){return r.post("/user/address",e,s)}function n(e,s,t={}){return r.put(`/user/address/${e}`,s,t)}function a(e,s={}){return r.delete(`/user/address/${e}`,s)}function l(e,s={}){return r.put(`/user/address/${e}/default`,null,s)}function o(e={}){return r.get("/user/address/list",null,e)}export{u as c,a as d,o as g,l as s,n as u};

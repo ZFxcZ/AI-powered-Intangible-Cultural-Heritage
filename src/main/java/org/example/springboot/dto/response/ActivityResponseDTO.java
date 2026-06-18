@@ -48,6 +48,9 @@ public class ActivityResponseDTO {
 
     @Schema(description = "更新时间")
     private LocalDateTime updateTime;
+
+    @Schema(description = "当前用户是否已报名")
+    private Boolean hasSignedUp;
 }
 
 
